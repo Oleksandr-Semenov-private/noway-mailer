@@ -1,6 +1,6 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using IronSalesmanBot.DependencyInjection;
+using MailerRobot.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 

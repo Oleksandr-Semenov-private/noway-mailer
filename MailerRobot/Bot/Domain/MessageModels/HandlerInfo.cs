@@ -1,4 +1,4 @@
-﻿using IronSalesmanBot.Bot.MessageHandlers.Base;
+﻿using MailerRobot.Bot.MessageHandlers.Base;
 
 namespace MailerRobot.Bot.Domain.MessageModels;
 

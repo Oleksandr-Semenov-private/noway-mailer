@@ -25,5 +25,13 @@ public interface ITelegramBot
 		InlineKeyboardMarkup? replyMarkup = default,
 		CancellationToken cancellationToken = default);
 
-	Task BackButton(long chatId, ParseMode parseMode = ParseMode.Markdown, InlineKeyboardMarkup? replyMarkup = default, CancellationToken cancellationToken = default);
+	Task DeletePreviousAsync(
+		long chatId,
+		string? text,
+		ParseMode parseMode = ParseMode.Markdown,
+		InlineKeyboardMarkup? replyMarkup = default,
+		CancellationToken cancellationToken = default);
+	
+	
+	Task BackButton(long chatId,string text, ParseMode parseMode = ParseMode.Markdown, InlineKeyboardMarkup? replyMarkup = default, CancellationToken cancellationToken = default);
 }

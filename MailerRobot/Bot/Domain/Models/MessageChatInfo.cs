@@ -1,6 +1,6 @@
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace IronSalesmanBot.Bot.Domain.Data.Models;
+namespace MailerRobot.Bot.Domain.Models;
 
 public record MessageChatInfo
 {

@@ -1,4 +1,4 @@
-namespace IronSalesmanBot.Bot.Domain.Data.Models;
+namespace MailerRobot.Bot.Domain.Models;
 
 public enum MessageChatType
 {

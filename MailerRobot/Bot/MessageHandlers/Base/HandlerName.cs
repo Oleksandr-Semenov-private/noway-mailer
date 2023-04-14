@@ -1,4 +1,4 @@
-namespace IronSalesmanBot.Bot.MessageHandlers.Base;
+namespace MailerRobot.Bot.MessageHandlers.Base;
 
 internal enum HandlerName
 {
@@ -10,6 +10,9 @@ internal enum HandlerName
 	DeleteMe,
 	NewUser,
 	Password,
-	MailSender,
-	BackButton
+	ChooseService,
+	BackButton,
+	EbayDe,
+	EmailEntered,
+	LinkEntered
 }

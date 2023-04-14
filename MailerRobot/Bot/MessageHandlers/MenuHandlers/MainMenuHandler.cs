@@ -1,9 +1,10 @@
-using IronSalesmanBot.Bot.Domain;
-using IronSalesmanBot.Bot.MessageHandlers.Base;
+using MailerRobot.Bot.Domain;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
+using MailerRobot.Bot.Domain.Models;
+using MailerRobot.Bot.MessageHandlers.Base;
 
-namespace IronSalesmanBot.Bot.MessageHandlers;
+namespace MailerRobot.Bot.MessageHandlers;
 
 [MessageHandler(HandlerName.MainMenu)]
 internal class MainMenuHandler : MessageHandler
@@ -15,15 +16,15 @@ internal class MainMenuHandler : MessageHandler
 		_botClient = botClient;
 	}
 
-	protected override async Task<string> GetAnswer(MessageData message)
+	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		if (message.HandlerInfo.Data?.Equals("Override:True") ?? false)
 			await _botClient.OverridePreviousAsync(message.From.ChatId,
-				"Let's start!",
+				"Вы попали в главное меню",
 				replyMarkup: Keyboard.GetMainKeyboard());
 		else
 			await _botClient.SendAsync(message.From.ChatId,
-				"Let's start!",
+				"Вы попали в главное меню",
 				replyMarkup: Keyboard.GetMainKeyboard());
 
 		return default!;

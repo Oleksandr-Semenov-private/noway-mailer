@@ -1,4 +1,4 @@
-namespace IronSalesmanBot.Bot.MessageHandlers.Base;
+namespace MailerRobot.Bot.MessageHandlers.Base;
 
 [AttributeUsage(AttributeTargets.Class)]
 internal class MessageHandlerAttribute : Attribute

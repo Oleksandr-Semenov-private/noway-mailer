@@ -1,9 +1,8 @@
-using IronSalesmanBot.Bot.MessageHandlers.Base;
-using MailerRobot.Bot;
 using MailerRobot.Bot.Domain.MessageModels;
+using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace IronSalesmanBot.Bot.Domain;
+namespace MailerRobot.Bot.Domain;
 
 public static class Keyboard
 {
@@ -11,7 +10,7 @@ public static class Keyboard
 	{
 		var buttons = new List<InlineKeyboardButton>
 		{
-			new("📩 Отправить письмо") {CallbackData = new HandlerInfo(HandlerName.MailSender).Serialize()},
+			new("📩 Отправить письмо") {CallbackData = new HandlerInfo(HandlerName.ChooseService).Serialize()},
 			new("Bot") {CallbackData = new HandlerInfo(HandlerName.Config).Serialize()}
 		};
 

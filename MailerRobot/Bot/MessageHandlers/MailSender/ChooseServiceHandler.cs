@@ -1,30 +1,31 @@
-﻿using IronSalesmanBot.Bot.MessageHandlers.Base;
-using MailerRobot.Bot;
-using MailerRobot.Bot.Domain.Interfaces;
+﻿using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
 using MailerRobot.Bot.Domain.Models;
+using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace IronSalesmanBot.Bot.MessageHandlers.MailSender;
+namespace MailerRobot.Bot.MessageHandlers.MailSender;
 
-[MessageHandler(HandlerName.MailSender)]
-internal class MailSenderHandler : MessageHandler
+[MessageHandler(HandlerName.ChooseService)]
+internal class ChooseServiceHandler : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
 	private MessageData _message = null!;
 
-	public MailSenderHandler(ITelegramBot botClient)
+	public ChooseServiceHandler(ITelegramBot botClient)
 	{
 		_botClient = botClient;
 	}
 
-	protected override async Task<string> GetAnswer(MessageData message)
+	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		_message = message;
-		
+
 		await _botClient.OverridePreviousAsync(message.From.ChatId,
 			"Выберите сервис:",
 			replyMarkup: GetServicesKeyboard());
+
+		subscriber.State = InputState.WaitingForLinkOnSite;
 
 		return default!;
 	}
@@ -41,7 +42,7 @@ internal class MailSenderHandler : MessageHandler
 	{
 		var getServicesButton = new InlineKeyboardButton("🇩🇪 Ebay")
 		{
-			CallbackData = new HandlerInfo(HandlerName.NewUser).Serialize()
+			CallbackData = new HandlerInfo(HandlerName.EbayDe).Serialize()
 		};
 		
 		var buttons = new List<InlineKeyboardButton>();

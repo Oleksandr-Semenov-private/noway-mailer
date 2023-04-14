@@ -1,12 +1,12 @@
 using System.Reflection;
 using Autofac;
-using IronSalesmanBot.Bot.MessageHandlers.Base;
 using MailerRobot.Bot.Domain.Data;
 using MailerRobot.Bot.Extensions;
+using MailerRobot.Bot.MessageHandlers.Base;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;
 
-namespace IronSalesmanBot.DependencyInjection;
+namespace MailerRobot.DependencyInjection;
 
 public class MainModule : Module
 {

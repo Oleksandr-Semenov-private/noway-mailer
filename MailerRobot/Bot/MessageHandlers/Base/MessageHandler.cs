@@ -1,15 +1,16 @@
 using MailerRobot.Bot.Domain.MessageModels;
+using MailerRobot.Bot.Domain.Models;
 
-namespace IronSalesmanBot.Bot.MessageHandlers.Base;
+namespace MailerRobot.Bot.MessageHandlers.Base;
 
 internal abstract class MessageHandler
 {
-	//TODO: Verification
-	public async Task<string> GetAnswerAsync(MessageData message)
+	
+	public async Task<string> GetAnswerAsync(Subscriber subscriber,MessageData message)
 	{
 		var user = message.From;
 
-		return await GetAnswer(message);
+		return await GetAnswer(subscriber, message);
 	}
 
 	protected virtual Task<string> GetAnswerForUnregistered(MessageData message)
@@ -17,5 +18,5 @@ internal abstract class MessageHandler
 		return Task.FromResult("You are not registered.");
 	}
 
-	protected abstract Task<string> GetAnswer(MessageData message);
+	protected abstract Task<string> GetAnswer(Subscriber subscriber, MessageData message);
 }

@@ -1,4 +1,4 @@
-namespace IntappDte.Extensions;
+namespace MailerRobot.Bot.Extensions;
 
 public static class EnumExtensions
 {

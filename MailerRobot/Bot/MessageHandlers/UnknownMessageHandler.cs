@@ -1,9 +1,10 @@
-using IronSalesmanBot.Bot.Domain;
-using IronSalesmanBot.Bot.MessageHandlers.Base;
+using MailerRobot.Bot.Domain;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
+using MailerRobot.Bot.Domain.Models;
+using MailerRobot.Bot.MessageHandlers.Base;
 
-namespace IronSalesmanBot.Bot.MessageHandlers;
+namespace MailerRobot.Bot.MessageHandlers;
 
 [MessageHandler(HandlerName.Unknown)]
 internal class UnknownMessageHandler : MessageHandler
@@ -15,12 +16,12 @@ internal class UnknownMessageHandler : MessageHandler
 		_botClient = botClient;
 	}
 
-	protected override async Task<string> GetAnswer(MessageData message)
+	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		await _botClient.SendAsync(message.From.ChatId,
 			"Unknown command",
 			replyMarkup: Keyboard.GetMainKeyboard());
-
+		
 		return default!;
 	}
 }

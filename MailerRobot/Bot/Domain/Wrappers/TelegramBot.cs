@@ -1,8 +1,7 @@
 ﻿using MailerRobot.Bot.Domain.Interfaces;
 using Autofac;
-using IronSalesmanBot.Bot.Domain;
-using IronSalesmanBot.Bot.Domain.Data.Models;
 using MailerRobot.Bot.Domain.Data;
+using MailerRobot.Bot.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -96,7 +95,37 @@ public class TelegramBot : ITelegramBot
 		await appContext.SaveChangesAsync(cancellationToken);
 	}
 	
-	public async Task BackButton(long chatId, ParseMode parseMode = ParseMode.Markdown, InlineKeyboardMarkup? replyMarkup = default, CancellationToken cancellationToken = default)
+	public async Task DeletePreviousAsync(
+		long chatId,
+		string? text,
+		ParseMode parseMode = ParseMode.Markdown,
+		InlineKeyboardMarkup? replyMarkup = default,
+		CancellationToken cancellationToken = default)
+	{
+		await using var scope = _scope.BeginLifetimeScope();
+		var appContext = scope.Resolve<ApplicationContext>();
+
+		var previousMsg = await GetPreviousMessageAsync(chatId, appContext, cancellationToken);
+
+		if (previousMsg is null)
+			return;
+
+		await _botClient.DeleteMessageAsync(chatId, previousMsg.MessageId, cancellationToken: cancellationToken);
+		
+		var msgEntity = previousMsg with
+		{
+			Id = 0,
+			Text = text ?? previousMsg.Text!,
+			Date = DateTime.Now
+		};
+
+		previousMsg.IsDeleted = true;
+
+		appContext.Messages.Add(msgEntity);
+		await appContext.SaveChangesAsync(cancellationToken);
+	}
+	
+	public async Task BackButton(long chatId, string text, ParseMode parseMode = ParseMode.Markdown, InlineKeyboardMarkup? replyMarkup = default, CancellationToken cancellationToken = default)
 	{
 		await using var scope = _scope.BeginLifetimeScope();
 		var appContext = scope.Resolve<ApplicationContext>();
@@ -107,7 +136,7 @@ public class TelegramBot : ITelegramBot
 			return;
 		
 		var message = await _botClient.EditMessageTextAsync(chatId, previousMsg.MessageId,
-			previousMsg.Text!, parseMode, replyMarkup: Keyboard.GetMainKeyboard(), cancellationToken: cancellationToken);
+			text ?? previousMsg.Text!, parseMode, replyMarkup: Keyboard.GetMainKeyboard(), cancellationToken: cancellationToken);
 
 		var msgEntity = previousMsg with
 		{

@@ -1,11 +1,10 @@
-using IntappDte.Extensions;
-using IronSalesmanBot.Bot.Domain.Data.Models;
-using MailerRobot.Bot;
+using MailerRobot.Bot.Domain.Models;
+using MailerRobot.Bot.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace IronSalesmanBot.Bot.Domain.Data.Configurations;
+namespace MailerRobot.Bot.Domain.Data.Configurations;
 
 internal class MessageChatInfoConfiguration : IEntityTypeConfiguration<MessageChatInfo>
 {

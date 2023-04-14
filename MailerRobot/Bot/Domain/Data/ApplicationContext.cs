@@ -1,5 +1,5 @@
-﻿using IronSalesmanBot.Bot.Domain.Data.Configurations;
-using IronSalesmanBot.Bot.Domain.Data.Models;
+﻿using MailerRobot.Bot.Domain.Data.Configurations;
+using MailerRobot.Bot.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MailerRobot.Bot.Domain.Data;

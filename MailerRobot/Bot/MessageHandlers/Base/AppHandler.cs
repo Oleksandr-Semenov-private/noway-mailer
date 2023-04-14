@@ -1,10 +1,10 @@
-using IronSalesmanBot.Bot.Domain.Data;
-using MailerRobot.Bot;
+using MailerRobot.Bot.Domain.Data;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
+using MailerRobot.Bot.Domain.Models;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace IronSalesmanBot.Bot.MessageHandlers.Base;
+namespace MailerRobot.Bot.MessageHandlers.Base;
 
 internal abstract class AppHandler : MessageHandler
 {
@@ -17,7 +17,7 @@ internal abstract class AppHandler : MessageHandler
 		_configuration = configuration;
 	}
 
-	protected override async Task<string> GetAnswer(MessageData message)
+	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		await _botClient.OverridePreviousAsync(message.From.ChatId, "Choose an application",
 			replyMarkup: GetAppKeyboard());

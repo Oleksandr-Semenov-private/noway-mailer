@@ -1,4 +1,4 @@
-namespace IronSalesmanBot.Bot.Domain.Data;
+namespace MailerRobot.Bot.Domain.Data;
 
 public enum AppName
 {
