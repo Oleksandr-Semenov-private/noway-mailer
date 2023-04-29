@@ -87,3 +87,5 @@ C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\Serilog.dl
 C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\Serilog.Sinks.Console.dll
 C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\Serilog.Sinks.File.dll
 C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\data\Subscribers.json
+C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\RestSharp.dll
+C:\Users\Admin\RiderProjects\MailerRobot\MailerRobot\bin\Debug\net7.0\Mailjet.Client.dll

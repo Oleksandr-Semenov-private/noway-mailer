@@ -19,5 +19,6 @@ public class SubscriberData
 
 public enum ServiceType
 {
-    EbayDe
+    EbayDe,
+    DHL
 }

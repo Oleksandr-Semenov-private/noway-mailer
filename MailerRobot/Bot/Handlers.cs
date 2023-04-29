@@ -186,7 +186,7 @@ public class Handlers : IHandlers
 	{
 		return new List<InlineKeyboardButton>
 		{
-			new("< Back")
+			new("← Back")
 			{
 				CallbackData = new HandlerInfo(HandlerName.BackButton).Serialize()
 			}

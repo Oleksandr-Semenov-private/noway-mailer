@@ -14,5 +14,6 @@ internal enum HandlerName
 	BackButton,
 	EbayDe,
 	EmailEntered,
-	LinkEntered
+	LinkEntered,
+	DHL
 }

@@ -45,7 +45,7 @@ internal abstract class AppHandler : MessageHandler
 	{
 		return new List<InlineKeyboardButton>
 		{
-			new("< Back") {CallbackData = new HandlerInfo(GetPreviousHandlerName()).Serialize()}
+			new("← Back") {CallbackData = new HandlerInfo(GetPreviousHandlerName()).Serialize()}
 		};
 	}
 }

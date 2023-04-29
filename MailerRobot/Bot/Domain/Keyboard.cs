@@ -11,7 +11,7 @@ public static class Keyboard
 		var buttons = new List<InlineKeyboardButton>
 		{
 			new("📩 Отправить письмо") {CallbackData = new HandlerInfo(HandlerName.ChooseService).Serialize()},
-			new("Bot") {CallbackData = new HandlerInfo(HandlerName.Config).Serialize()}
+			//new("Bot") {CallbackData = new HandlerInfo(HandlerName.Config).Serialize()}
 		};
 
 		return new InlineKeyboardMarkup(buttons);

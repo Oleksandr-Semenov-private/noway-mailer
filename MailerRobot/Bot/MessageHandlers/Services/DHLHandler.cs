@@ -7,13 +7,13 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace MailerRobot.Bot.MessageHandlers.Services;
 
 
-[MessageHandler(HandlerName.EbayDe)]
-internal class EbayDeHandler : MessageHandler
+[MessageHandler(HandlerName.DHL)]
+internal class DHLHandler : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
 	private MessageData _message = null!;
 
-	public EbayDeHandler(ITelegramBot botClient)
+	public DHLHandler(ITelegramBot botClient)
 	{
 		_botClient = botClient;
 	}
@@ -28,7 +28,7 @@ internal class EbayDeHandler : MessageHandler
 
 		subscriber.State = InputState.WaitingForLinkOnSite;
 		
-		subscriber.SubscriberData.Type = ServiceType.EbayDe;
+		subscriber.SubscriberData.Type = ServiceType.DHL;
 		
 		return default!;
 	}

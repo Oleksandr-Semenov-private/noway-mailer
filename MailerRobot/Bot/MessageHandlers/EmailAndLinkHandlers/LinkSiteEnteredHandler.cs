@@ -45,7 +45,7 @@ internal class LinkSiteEnteredHandler : MessageHandler
 	{
 		return new List<InlineKeyboardButton>
 		{
-			new("< Back")
+			new("← Back")
 			{
 				CallbackData = new HandlerInfo(HandlerName.BackButton).Serialize()
 			}
