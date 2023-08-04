@@ -1,4 +1,4 @@
-﻿using MailerRobot.Bot.Domain.Interfaces;
+﻿/*using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.Models;
 using ILogger = Serilog.ILogger;
 namespace MailerRobot.Bot.Manager;
@@ -66,7 +66,7 @@ public abstract class StatefulManagerBase : IOutgoingNotifications
             var exactSubscription = subscriber.Subscriptions.Single(s => s.Equals(subscription) && s.Enabled);
 
             var message = $"New result: {newResult.Link} \n" +
-                          $"{exactSubscription.Title} - {newResult.CreationDate} - {newResult.Price}";   // TODO: Amend Title of already sent notification to avoid duplicate notifications for two subscriptions
+                          $"{} - {newResult.CreationDate} - {newResult.Price}";   // TODO: Amend Title of already sent notification to avoid duplicate notifications for two subscriptions
             await SendMessage(subscriber, message);
         }
     }
@@ -184,7 +184,7 @@ public abstract class StatefulManagerBase : IOutgoingNotifications
         subscriber.State = InputState.WaitingForSubscriptionToDelete;
     }
 
-    private async Task DeleteSubscription(Subscriber subscriber, string messageText)
+    /*private async Task DeleteSubscription(Subscriber subscriber, string messageText)
     {
         var subscriptionToDelete = subscriber.Subscriptions.FirstOrDefault(s => s.Title == messageText);
 
@@ -199,6 +199,7 @@ public abstract class StatefulManagerBase : IOutgoingNotifications
         _subscriptionPersistence.SaveData();
         await SendMessage(subscriber, $"Deleted subscription {subscriptionToDelete.Title}");
     }
+    #1#
 
     private async Task EnableOrDisableSubscription(Subscriber subscriber, string messageText)
     {
@@ -374,4 +375,4 @@ public abstract class StatefulManagerBase : IOutgoingNotifications
     {
         await SendMessage(subscriber, "I don't understand. Write /help for instructions.");
     }
-}
+}*/

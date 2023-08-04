@@ -15,5 +15,15 @@ internal enum HandlerName
 	EbayDe,
 	EmailEntered,
 	LinkEntered,
-	DHL
+	DHL,
+	Support,
+	Subscription,
+	PurchaseSubscription,
+	SelectSubscription,
+	SubscriptionFor1Day,
+	SubscriptionFor3Days,
+	SubscriptionFor7Days,
+	SubscriptionFor30Days,
+	Pay1Day,
+	CheckPayment
 }

@@ -4,43 +4,36 @@ using MailerRobot.Bot.Domain.Models;
 using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MailerRobot.Bot.MessageHandlers.MailSender;
+namespace MailerRobot.Bot.MessageHandlers.Support;
 
-[MessageHandler(HandlerName.LinkEntered)]
-internal class LinkSiteEnteredHandler : MessageHandler
+[MessageHandler(HandlerName.Support)]
+internal class SupportHandler : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
 	private MessageData _message = null!;
-	private readonly ISubscriptionPersistence _subscriptionPersistence;
-	
-	public LinkSiteEnteredHandler(ITelegramBot botClient, ISubscriptionPersistence subscriptionPersistence)
+
+	public SupportHandler(ITelegramBot botClient)
 	{
 		_botClient = botClient;
-		_subscriptionPersistence = subscriptionPersistence;
 	}
 
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		_message = message;
 
-		await _botClient.DeletePreviousAsync(message.From.ChatId, "Введите ссылку:");
-		
-		await _botClient.SendAsync(message.From.ChatId,
-			"Введите email:",
+		await _botClient.OverridePreviousAsync(message.From.ChatId,
+			"Связь: @thatwayyouknow",
 			replyMarkup: GetServicesKeyboard());
 
-		_subscriptionPersistence.AddLink(subscriber, _message.HandlerInfo.Data);
-		
-		subscriber.State = InputState.WaitingForEmail;
-		
+		subscriber.State = InputState.WaitingForLinkOnSite;
+
 		return default!;
 	}
 	
 	private InlineKeyboardMarkup GetServicesKeyboard()
 	{
-		return new InlineKeyboardMarkup(new[] {GetBackButton()});
+		return new InlineKeyboardMarkup(new[] { GetBackButton() });
 	}
-	
 	private static List<InlineKeyboardButton> GetBackButton()
 	{
 		return new List<InlineKeyboardButton>

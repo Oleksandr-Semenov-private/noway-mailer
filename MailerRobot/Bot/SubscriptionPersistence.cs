@@ -81,11 +81,25 @@ public class SubscriptionPersistence : ISubscriptionPersistence
         SaveData();
     }
 
-    public List<Subscription> GetEnabledSubscriptions()
+    public void CreateSubscription(Subscriber subscriber, int countOfDays)
+    {
+        var subscription = new Subscription() { EndDate = DateTime.Now.AddDays(countOfDays) };
+        subscriber.Subscriptions = new List<Subscription>() {subscription};
+        SaveData();
+    }
+
+    public void RenewSubscription(Subscriber subscriber, int countOfDays)
+    {
+        var subscription = subscriber.Subscriptions.First();
+        subscription.EndDate.AddDays(countOfDays);
+        SaveData();
+    }
+
+    /*public List<Subscription> GetEnabledSubscriptions()
     {
         return GetSubscribers()
             .SelectMany(s => s.Subscriptions)
             .Where(s => s.Enabled)
             .ToList();
-    }
+    }*/
 }

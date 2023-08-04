@@ -10,21 +10,35 @@ namespace MailerRobot.Bot.MessageHandlers;
 internal class MainMenuHandler : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
+	private readonly ISubscriptionPersistence _subscriptionPersistence;
 
-	public MainMenuHandler(ITelegramBot botClient)
+	public MainMenuHandler(ITelegramBot botClient, ISubscriptionPersistence subscriptionPersistence)
 	{
 		_botClient = botClient;
+		_subscriptionPersistence = subscriptionPersistence;
 	}
 
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
+		var subscription = subscriber.Subscriptions.FirstOrDefault();
+
+		var q = "отсутствует";
+
+		if (subscription != null)
+			q = $"{subscription.EndDate - DateTime.Now}";
+		
+		
 		if (message.HandlerInfo.Data?.Equals("Override:True") ?? false)
 			await _botClient.OverridePreviousAsync(message.From.ChatId,
-				"Вы попали в главное меню",
+				"👋 Вы попали в главное меню" +
+				$"\n📍 Ваш id: {subscriber.Id}" +
+				$"\n📝 Подписка: {q}",
 				replyMarkup: Keyboard.GetMainKeyboard());
 		else
 			await _botClient.SendAsync(message.From.ChatId,
-				"Вы попали в главное меню",
+				"👋 Вы попали в главное меню" +
+				$"\n📍 Ваш id: {subscriber.Id}" +
+				$"\n📝 Подписка: {q}",
 				replyMarkup: Keyboard.GetMainKeyboard());
 
 		return default!;

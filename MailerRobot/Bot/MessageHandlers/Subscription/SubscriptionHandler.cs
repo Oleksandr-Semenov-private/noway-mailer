@@ -4,16 +4,15 @@ using MailerRobot.Bot.Domain.Models;
 using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MailerRobot.Bot.MessageHandlers.Services;
+namespace MailerRobot.Bot.MessageHandlers.Subscription;
 
-
-[MessageHandler(HandlerName.EbayDe)]
-internal class EbayDeHandler : MessageHandler
+[MessageHandler(HandlerName.Subscription)]
+internal class SubscriptionHandler : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
 	private MessageData _message = null!;
 
-	public EbayDeHandler(ITelegramBot botClient)
+	public SubscriptionHandler(ITelegramBot botClient)
 	{
 		_botClient = botClient;
 	}
@@ -21,21 +20,28 @@ internal class EbayDeHandler : MessageHandler
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		_message = message;
-		
-		await _botClient.OverridePreviousAsync(message.From.ChatId,
-			"Введите ссылку:",
-			replyMarkup: GetEbayDeKeyboard());
 
-		subscriber.State = InputState.WaitingForLinkOnSite;
-		
-		subscriber.SubscriberData.Type = ServiceType.EbayDe;
+		await _botClient.OverridePreviousAsync(message.From.ChatId,
+			"Выбранная подписка: отсутствует",
+			replyMarkup: GetServicesKeyboard());
+
 		
 		return default!;
 	}
 	
-	private InlineKeyboardMarkup GetEbayDeKeyboard()
+	private InlineKeyboardMarkup GetServicesKeyboard()
 	{
-		return new InlineKeyboardMarkup(new[] {GetBackButton()});
+		return new InlineKeyboardMarkup(new[] { PurchaseSubscription(), GetBackButton() });
+	}
+	private static List<InlineKeyboardButton> PurchaseSubscription()
+	{
+		return new List<InlineKeyboardButton>
+		{
+			new("Купить подписку")
+			{
+				CallbackData = new HandlerInfo(HandlerName.PurchaseSubscription).Serialize()
+			}
+		};
 	}
 	
 	private static List<InlineKeyboardButton> GetBackButton()

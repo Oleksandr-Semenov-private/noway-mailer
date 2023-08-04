@@ -4,43 +4,45 @@ using MailerRobot.Bot.Domain.Models;
 using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MailerRobot.Bot.MessageHandlers.MailSender;
+namespace MailerRobot.Bot.MessageHandlers.Subscription.Pay;
 
-[MessageHandler(HandlerName.LinkEntered)]
-internal class LinkSiteEnteredHandler : MessageHandler
+[MessageHandler(HandlerName.SubscriptionFor1Day)]
+internal class BuySubscriptionFor1Day : MessageHandler
 {
 	private readonly ITelegramBot _botClient;
 	private MessageData _message = null!;
-	private readonly ISubscriptionPersistence _subscriptionPersistence;
-	
-	public LinkSiteEnteredHandler(ITelegramBot botClient, ISubscriptionPersistence subscriptionPersistence)
+
+	public BuySubscriptionFor1Day(ITelegramBot botClient)
 	{
 		_botClient = botClient;
-		_subscriptionPersistence = subscriptionPersistence;
 	}
 
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		_message = message;
 
-		await _botClient.DeletePreviousAsync(message.From.ChatId, "Введите ссылку:");
-		
-		await _botClient.SendAsync(message.From.ChatId,
-			"Введите email:",
+		await _botClient.OverridePreviousAsync(message.From.ChatId,
+			"К оплате 1$" +
+			"\n\nВыберите валюту для оплаты:" ,
 			replyMarkup: GetServicesKeyboard());
-
-		_subscriptionPersistence.AddLink(subscriber, _message.HandlerInfo.Data);
-		
-		subscriber.State = InputState.WaitingForEmail;
 		
 		return default!;
 	}
 	
 	private InlineKeyboardMarkup GetServicesKeyboard()
 	{
-		return new InlineKeyboardMarkup(new[] {GetBackButton()});
+		return new InlineKeyboardMarkup(new[] { PurchaseSubscriptionFirstRaw(), GetBackButton() });
 	}
-	
+	private static List<InlineKeyboardButton> PurchaseSubscriptionFirstRaw()
+	{
+		return new List<InlineKeyboardButton>
+		{
+			new("USDT")
+			{
+				CallbackData = new HandlerInfo(HandlerName.Pay1Day).Serialize()
+			}
+		};
+	}
 	private static List<InlineKeyboardButton> GetBackButton()
 	{
 		return new List<InlineKeyboardButton>

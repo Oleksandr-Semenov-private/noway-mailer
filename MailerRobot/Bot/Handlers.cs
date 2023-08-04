@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Autofac;
+using CryptoPay;
+using CryptoPay.Types;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
 using MailerRobot.Bot.Domain.Models;
@@ -9,16 +11,17 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Update = Telegram.Bot.Types.Update;
 using User = MailerRobot.Bot.Domain.Models.User;
 
 namespace MailerRobot.Bot;
 
 public class Handlers : IHandlers
 {
+	private static ITelegramBot _botClient;
 	private readonly ITelegramBot _bot;
 	private readonly ILifetimeScope _scope;
 	private readonly ISubscriptionPersistence _subscriptionPersistence;
-	private static ITelegramBot _botClient;
 
 	public Handlers(ITelegramBot bot, ILifetimeScope scope, ISubscriptionPersistence subscriptionPersistence)
 	{
@@ -49,7 +52,7 @@ public class Handlers : IHandlers
 		CancellationToken cancellationToken)
 	{
 		Subscriber subscriber = null;
-		
+
 		try
 		{
 			var subscribers = _subscriptionPersistence.GetSubscribers();
@@ -63,23 +66,81 @@ public class Handlers : IHandlers
 			{
 				clientId = update.CallbackQuery.From.Id;
 			}
-				
+
 			subscriber = subscribers.SingleOrDefault(s => s.Id == clientId.ToString());
-		
+
 			if (subscriber is null)
 			{
-				subscriber = new Subscriber { Id = clientId.ToString() };
+				subscriber = new Subscriber {Id = clientId.ToString()};
 				_subscriptionPersistence.AddSubscriber(subscriber);
 			}
-			
+
 			var messageData = update.Type switch
 			{
-				UpdateType.Message => await MapMessageData(subscriber,update.Message!),
-				UpdateType.EditedMessage => await MapMessageData(subscriber,update.EditedMessage!),
+				UpdateType.Message => await MapMessageData(subscriber, update.Message!),
+				UpdateType.EditedMessage => await MapMessageData(subscriber, update.EditedMessage!),
 				UpdateType.CallbackQuery => await MapMessageData(update.CallbackQuery!),
 				_ => null!
 			};
-			
+
+			if (messageData.HandlerInfo.HandlerName == HandlerName.CheckPayment)
+			{
+				var cryptoPayClient = new CryptoPayClient("112943:AA0X3i5yXTduM2hyLs5f1DXcjphHssKRXpY");
+
+				var invoicesAsync = await cryptoPayClient.GetInvoicesAsync(cancellationToken: cancellationToken);
+
+				var invoice = invoicesAsync.Items.First(i => i.InvoiceId == long.Parse(messageData.HandlerInfo.Data));
+
+				if (invoice.Status == Statuses.active)
+				{
+					var telegramMessage = "Счет не оплачен";
+
+					await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
+						ParseMode.Html);
+
+					return;
+				}
+
+				if (invoice.Status == Statuses.paid)
+				{
+					var telegramMessage = "Счет успешно оплачен";
+
+					await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
+						ParseMode.Html);
+
+					var countDays = 0;
+
+					switch (invoice.Amount)
+					{
+						case 0.1:
+							countDays = 1;
+
+							break;
+						case 0.2:
+							countDays = 3;
+
+							break;
+						case 0.3:
+							countDays = 7;
+
+							break;
+						case 0.4:
+							countDays = 30;
+
+							break;
+					}
+
+					if (subscriber.Subscriptions.Count == 0)
+						_subscriptionPersistence.CreateSubscription(subscriber, countDays);
+					else
+						_subscriptionPersistence.RenewSubscription(subscriber, countDays);
+
+					return;
+
+					//messageData.HandlerInfo.HandlerName = HandlerName.MainMenu;
+				}
+			}
+
 			await HandleMessageAsync(subscriber, messageData);
 		}
 		catch (Exception exception)
@@ -95,7 +156,7 @@ public class Handlers : IHandlers
 		await using var scope = _scope.BeginLifetimeScope();
 
 		var handler = scope.ResolveKeyed<MessageHandler>(message.HandlerInfo.HandlerName);
-		
+
 		var answer = await handler.GetAnswerAsync(subscriber, message);
 
 		if (string.IsNullOrEmpty(answer) is false)
@@ -105,9 +166,9 @@ public class Handlers : IHandlers
 	private async Task<MessageData> MapMessageData(Subscriber subscriber, Message message)
 	{
 		await _bot.SaveAsync(message);
-		
+
 		return new MessageData(message.MessageId,
-			DeserializeMessage(subscriber,message),
+			DeserializeMessage(subscriber, message),
 			message.From?.LanguageCode!,
 			MapUser(message.From!));
 	}
@@ -122,13 +183,13 @@ public class Handlers : IHandlers
 			Username = user.Username
 		};
 	}
-	
+
 	private async Task<MessageData> MapMessageData(CallbackQuery query)
 	{
 		return new MessageData(query.Message!.MessageId,
 			query.Data!.Deserialize<HandlerInfo>(),
 			query.From.LanguageCode!,
-			new User() {ChatId = query.From.Id});
+			new User {ChatId = query.From.Id});
 	}
 
 	private static HandlerInfo DeserializeMessage(Subscriber subscriber, Message message)
@@ -136,22 +197,21 @@ public class Handlers : IHandlers
 		if (subscriber.State == InputState.WaitingForLinkOnSite)
 		{
 			if (Regex.IsMatch(message.Text!, @"^(http|https)://"))
-				return new HandlerInfo(HandlerName.LinkEntered, Data: message.Text!);
+				return new HandlerInfo(HandlerName.LinkEntered, message.Text!);
 
 			WrongLink(message);
 		}
-		
+
 		if (subscriber.State == InputState.WaitingForEmail)
 		{
 			if (Regex.IsMatch(message.Text!, @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$"))
-				return new HandlerInfo(HandlerName.EmailEntered, Data: message.Text!);
+				return new HandlerInfo(HandlerName.EmailEntered, message.Text!);
 
 			WrongEmail(message);
 		}
-		
-		
+
 		if (Regex.IsMatch(message.Text!, @"^\w{32}$"))
-			return new HandlerInfo(HandlerName.Verification, Data: message.Text!);
+			return new HandlerInfo(HandlerName.Verification, message.Text!);
 
 		if (message.Text! == "/run")
 			return new HandlerInfo(HandlerName.MainMenu);
@@ -176,12 +236,12 @@ public class Handlers : IHandlers
 			"Введите email:",
 			replyMarkup: GetServicesKeyboard());
 	}
-	
+
 	private static InlineKeyboardMarkup GetServicesKeyboard()
 	{
 		return new InlineKeyboardMarkup(new[] {GetBackButton()});
 	}
-	
+
 	private static List<InlineKeyboardButton> GetBackButton()
 	{
 		return new List<InlineKeyboardButton>

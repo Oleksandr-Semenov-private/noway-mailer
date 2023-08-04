@@ -32,7 +32,7 @@ public class SenderController : ControllerBase
 
 		_configuration.GetSection("MailSettings")
 					.GetChildren()
-					.First(e => e.Key == "Smtp2")
+					.First(e => e.Key == "Smtp4")
 					.Bind(config);
 		
 		var smtpServer = config.Host;
@@ -44,7 +44,7 @@ public class SenderController : ControllerBase
 		
 		smtpClient.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
 		smtpClient.EnableSsl = true;
-
+		
 		var senderEmail = config.User;
 		var recipientEmail = email;
 		var subject = "";

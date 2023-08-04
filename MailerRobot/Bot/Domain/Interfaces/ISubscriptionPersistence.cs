@@ -4,7 +4,7 @@ namespace MailerRobot.Bot.Domain.Interfaces;
 
 public interface ISubscriptionPersistence
 {
-    List<Subscription> GetEnabledSubscriptions();
+    //List<Subscription> GetEnabledSubscriptions();
     void AddSubscriber(Subscriber subscriber);
     Subscriber[] GetSubscribers();
     bool RestoreData();
@@ -12,4 +12,6 @@ public interface ISubscriptionPersistence
     void AddLink(Subscriber subscriber, string link);
     void AddEmail(Subscriber subscriber, string email);
     void AddServiceType(Subscriber subscriber, ServiceType serviceType);
+    void CreateSubscription(Subscriber subscriber, int countOfDays);
+    void RenewSubscription(Subscriber subscriber, int countOfDays);
 }

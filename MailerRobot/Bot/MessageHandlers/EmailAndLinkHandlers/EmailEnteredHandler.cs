@@ -1,17 +1,10 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Mail;
-using System.Text;
-using MailerRobot.Bot.Domain;
+﻿using MailerRobot.Bot.Domain;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
 using MailerRobot.Bot.Domain.Models;
-using MailerRobot.Bot.Domain.Responses;
 using MailerRobot.Bot.MessageHandlers.Base;
-using Mailjet.Client;
-using Mailjet.Client.Resources;
-using Mailjet.Client.TransactionalEmails;
-using Newtonsoft.Json.Linq;
+using MailerRobot.Bot.Services;
+using MediatR;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MailerRobot.Bot.MessageHandlers.MailSender;
@@ -22,15 +15,17 @@ internal class EmailEnteredHandler : MessageHandler
 	private readonly ITelegramBot _botClient;
 	private readonly ISubscriptionPersistence _subscriptionPersistence;
 	private readonly IConfiguration _configuration;
-	private MessageData _message = null!;
 	private readonly HttpClient _client;
+	private MessageData _message = null!;
+	private readonly IMediator _mediator;
 
 	public EmailEnteredHandler(ITelegramBot botClient, ISubscriptionPersistence subscriptionPersistence,
-		IConfiguration configuration)
+		IConfiguration configuration, IMediator mediator)
 	{
 		_botClient = botClient;
 		_subscriptionPersistence = subscriptionPersistence;
 		_configuration = configuration;
+		_mediator = mediator;
 		_client = new HttpClient();
 	}
 
@@ -44,7 +39,14 @@ internal class EmailEnteredHandler : MessageHandler
 
 		try
 		{
-			await SendEmail(subscriber);
+			//await SendEmail(subscriber);
+			//await SendEmailAPI(subscriber);
+
+			var sendEmailNotification = new SendEmailApiNotification(subscriber.SubscriberData.Email,
+				subscriber.SubscriberData.Link,
+				subscriber.SubscriberData.Type);
+
+			await _mediator.Publish(sendEmailNotification);
 
 			await _botClient.SendAsync(message.From.ChatId,
 				"✅ Письмо на email : " +
@@ -57,8 +59,17 @@ internal class EmailEnteredHandler : MessageHandler
 		}
 		finally
 		{
+			var subscription = subscriber.Subscriptions.FirstOrDefault();
+
+			var q = "отсутствует";
+
+			if (subscription != null)
+				q = $"{subscription.EndDate - DateTime.Now}";
+			
 			await _botClient.SendAsync(message.From.ChatId,
-				"Вы попали в главное меню",
+				"👋 Вы попали в главное меню" +
+				$"\n📍 Ваш id: {subscriber.Id}" +
+				$"\n📝 Подписка: {q}",
 				replyMarkup: Keyboard.GetMainKeyboard());
 
 			subscriber.State = InputState.Idle;
@@ -67,99 +78,28 @@ internal class EmailEnteredHandler : MessageHandler
 		return default!;
 	}
 
-	private async Task SendEmail(Subscriber subscriber)
+	private async Task SendEmailAPI(Subscriber subscriber)
 	{
-		
-		var smtpServer = "pop4.ocnk.net";
-		var smtpPort = 587;
-		var smtpUsername = "support@toratorashop.com";
-		var smtpPassword = "toratora";
+		using var client = new HttpClient();
+		client.BaseAddress = new Uri("https://noway-mailer.herokuapp.com");
 
-		var senderEmail = "support@toratorashop.com";
-		var recipientEmail = subscriber.SubscriberData.Email;
-		var subject = "";
+		var parameters = new Dictionary<string, string>
+		{
+			{"email", subscriber.SubscriberData.Email},
+			{"link", subscriber.SubscriberData.Link}
+		};
 
-		if (subscriber.SubscriberData.Type == ServiceType.DHL)
-			subject = "Unser Team hat einen Kunden für Sie gefunden #234422847";
+		var queryString = new FormUrlEncodedContent(parameters).ReadAsStringAsync().Result;
+
+		var url = "";
 
 		if (subscriber.SubscriberData.Type == ServiceType.EbayDe)
-			subject = "Nutzer-Anfrage zu deiner Anzeige!";
-		
-		//var subject = "Nutzer-Anfrage zu deiner Anzeige!";
-		var body = await GetBody(subscriber);
-
-		var smtpClient = new SmtpClient(smtpServer, smtpPort);
-		smtpClient.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
-		smtpClient.EnableSsl = true;
-
-		var message = new MailMessage(senderEmail, recipientEmail, subject, body);
-		message.IsBodyHtml = true;
-
-		//message.From = new MailAddress(senderEmail, "EBAY_Kleinanzeigen");
-
-		if (subscriber.SubscriberData.Type == ServiceType.DHL)
-		{
-			
-			message.From = new MailAddress(senderEmail, "•DHL•Lieferungen");
-		}
+			url = "https://noway-mailer.herokuapp.com/api/Sender/Ebay?" + queryString;
 		else
-		{
-			message.From = new MailAddress(senderEmail, "EBAY_Kleinanzeigen");
-		}
-			
-		
-		smtpClient.Send(message);
-	}
+			url = "https://noway-mailer.herokuapp.com/api/Sender/DHL?" + queryString;
 
-	private async Task<string> GetBody(Subscriber subscriber)
-	{
-		var link = await GetShortLink(subscriber.SubscriberData.Link);
-
-		var path = $@"C:\\Users\\Admin\\RiderProjects\\MailerRobot\\MailerRobot\\Bot\\Templates\\{subscriber.SubscriberData.Type}.html";
-		
-		var hmtlBody = File.ReadAllText(path)
-							.Replace("PutYourLinkHere", link);
-
-		return hmtlBody;
-	}
-
-	private async Task<string> GetShortLink(string link)
-	{
-		_client.BaseAddress = new Uri("https://n9.cl/");
-
-		var content = JsonContent.Create(new
-		{
-			url = link
-		});
-
-		var msg = await _client.PostAsync("api/short", content);
-
-		var response = await ReadResponseAsync<N9Response>(msg);
-
-		return response.Short;
-	}
-
-	private static async Task<TResponse> ReadResponseAsync<TResponse>(HttpResponseMessage msg,
-		CancellationToken ct = default) where TResponse : class
-	{
-		var response = await msg.Content.ReadAsStringAsync(ct);
-
-		return IsJson(response) ? response.Deserialize<TResponse>() : default!;
-	}
-
-	private static bool IsJson(string response)
-	{
-		return (response.StartsWith("{") && response.TrimEnd().EndsWith("}")) ||
-				(response.StartsWith("[") && response.TrimEnd().EndsWith("]"));
-	}
-
-	private InlineKeyboardMarkup GetServicesKeyboard()
-	{
-		var firstButtons = GetFirstRawButtons();
-
-		//var secondButtons = GetSecondRawButtons();
-
-		return new InlineKeyboardMarkup(new[] {firstButtons, GetBackButton()});
+		var response = await client.GetAsync(url);
+		var responseContent = await response.Content.ReadAsStringAsync();
 	}
 
 	private static List<InlineKeyboardButton> GetFirstRawButtons()

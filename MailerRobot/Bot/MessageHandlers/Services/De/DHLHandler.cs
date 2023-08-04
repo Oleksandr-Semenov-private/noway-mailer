@@ -4,7 +4,7 @@ using MailerRobot.Bot.Domain.Models;
 using MailerRobot.Bot.MessageHandlers.Base;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MailerRobot.Bot.MessageHandlers.Services;
+namespace MailerRobot.Bot.MessageHandlers.Services.De;
 
 
 [MessageHandler(HandlerName.DHL)]

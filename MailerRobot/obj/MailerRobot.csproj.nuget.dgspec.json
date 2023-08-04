@@ -56,6 +56,10 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "CryptoPay": {
+              "target": "Package",
+              "version": "[1.1.3.5, )"
+            },
             "Mailjet.Api": {
               "target": "Package",
               "version": "[3.0.0, )"
