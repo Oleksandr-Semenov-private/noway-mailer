@@ -20,8 +20,16 @@ internal class BackButtonHandler : MessageHandler
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
 		_message = message;
+
+		var subscription = "отсутствует";
+
+		if (subscriber.Subscriptions.Count > 0)
+			subscription = await subscriber.Subscriptions.OrderDescending().FirstOrDefault().GetRemainingDaysToStringAsync();
 		
-		await _botClient.BackButton(message.From.ChatId, "Вы попали в главное меню");
+		await _botClient.BackButton(message.From.ChatId, "👋 Вы попали в главное меню" +
+														$"\n📍 Ваш id: {subscriber.Id}" +
+														$"\n📝 Подписка: {subscription}"
+		);
 
 		subscriber.State = InputState.Idle;
 		

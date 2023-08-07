@@ -7,7 +7,7 @@ namespace MailerRobot.Bot;
 
 public class JsonStorage : IDataStorage
 {
-    private readonly object _lockObject = new();
+    private readonly SemaphoreSlim _lockObject = new SemaphoreSlim(1, 1);
     /*private readonly ILogger _logger;
 
     public JsonStorage(ILogger logger)
@@ -15,13 +15,18 @@ public class JsonStorage : IDataStorage
         _logger = logger;
     }*/
 
-    public void Save<T>(T data, string fileName)
+    public async Task SaveAsync<T>(T data, string fileName)
     {
         //_logger.Verbose($"Saving data to file {fileName}");
-        lock (_lockObject)
+        await _lockObject.WaitAsync();
+        try
         {
             var jsonString = JsonConvert.SerializeObject(data, new JsonSerializerSettings { Formatting = Formatting.Indented });
-            File.WriteAllText(fileName, jsonString, Encoding.UTF8);
+            await File.WriteAllTextAsync(fileName, jsonString, Encoding.UTF8);
+        }
+        finally
+        {
+            _lockObject.Release();
         }
     }
 

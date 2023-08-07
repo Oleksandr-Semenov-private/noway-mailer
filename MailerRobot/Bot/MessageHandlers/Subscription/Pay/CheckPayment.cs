@@ -1,5 +1,6 @@
 ﻿using CryptoPay;
 using CryptoPay.Types;
+using MailerRobot.Bot.Domain;
 using MailerRobot.Bot.Domain.Interfaces;
 using MailerRobot.Bot.Domain.MessageModels;
 using MailerRobot.Bot.Domain.Models;
@@ -23,20 +24,13 @@ internal class CheckPayment : MessageHandler
 	{
 		_message = message;
 		
-		var cryptoPayClient = new CryptoPayClient("112943:AA0X3i5yXTduM2hyLs5f1DXcjphHssKRXpY");
-		var application = await cryptoPayClient.GetMeAsync();
+		var subscription = await subscriber.Subscriptions.FirstOrDefault().GetRemainingDaysToStringAsync();
 		
-		var invoice = await cryptoPayClient.CreateInvoiceAsync(
-			Assets.USDT,
-			0.1,
-			description: "test");
-
-		var q = invoice.Status;
-		
-		await _botClient.OverridePreviousAsync(message.From.ChatId,
-			$"К оплате {invoice.Amount} USDT" +
-			"\n\nДля оплаты перейдите по ссылке:" ,
-			replyMarkup: GetServicesKeyboard(invoice));
+		await _botClient.SendAsync(message.From.ChatId,
+			"👋 Вы попали в главное меню" +
+			$"\n📍 Ваш id: {subscriber.Id}" +
+			$"\n📝 Подписка: {subscription}",
+			replyMarkup: Keyboard.GetMainKeyboard());
 		
 		return default!;
 	}

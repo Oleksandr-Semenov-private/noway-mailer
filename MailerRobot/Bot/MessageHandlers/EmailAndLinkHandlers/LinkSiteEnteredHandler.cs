@@ -29,7 +29,7 @@ internal class LinkSiteEnteredHandler : MessageHandler
 			"Введите email:",
 			replyMarkup: GetServicesKeyboard());
 
-		_subscriptionPersistence.AddLink(subscriber, _message.HandlerInfo.Data);
+		await _subscriptionPersistence.AddLinkAsync(subscriber, _message.HandlerInfo.Data);
 		
 		subscriber.State = InputState.WaitingForEmail;
 		

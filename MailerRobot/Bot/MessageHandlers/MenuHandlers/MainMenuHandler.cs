@@ -20,25 +20,27 @@ internal class MainMenuHandler : MessageHandler
 
 	protected override async Task<string> GetAnswer(Subscriber subscriber, MessageData message)
 	{
-		var subscription = subscriber.Subscriptions.FirstOrDefault();
-
-		var q = "отсутствует";
-
-		if (subscription != null)
-			q = $"{subscription.EndDate - DateTime.Now}";
+		var subscription = "отсутствует";
+			
+		if(subscriber.Subscriptions.Count > 0)	
+			subscription = await subscriber.Subscriptions.FirstOrDefault().GetRemainingDaysToStringAsync();
+				
+		var menu = "👋 Вы попали в главное меню" +
+									$"\n📍 Ваш id: {subscriber.Id}" +
+									$"\n📝 Подписка: {subscription}";
 		
-		
+		var adminMenu = "👋 Вы попали в главное меню" +
+						$"\n📍 Ваш id: {subscriber.Id}" +
+						$"\n🔹 Ваш роль: админ" +
+						$"\n📝 Подписка: {subscription}";
+
 		if (message.HandlerInfo.Data?.Equals("Override:True") ?? false)
 			await _botClient.OverridePreviousAsync(message.From.ChatId,
-				"👋 Вы попали в главное меню" +
-				$"\n📍 Ваш id: {subscriber.Id}" +
-				$"\n📝 Подписка: {q}",
+				subscriber.Role == Role.User ? menu : adminMenu,
 				replyMarkup: Keyboard.GetMainKeyboard());
 		else
 			await _botClient.SendAsync(message.From.ChatId,
-				"👋 Вы попали в главное меню" +
-				$"\n📍 Ваш id: {subscriber.Id}" +
-				$"\n📝 Подписка: {q}",
+				subscriber.Role == Role.User ? menu : adminMenu,
 				replyMarkup: Keyboard.GetMainKeyboard());
 
 		return default!;

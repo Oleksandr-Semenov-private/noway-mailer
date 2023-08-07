@@ -1,36 +1,15 @@
 ﻿[
   {
-    "Id": "6129124173",
-    "State": 0,
-    "IncompleteSubscription": null,
-    "Subscriptions": [],
-    "SubscriberData": {
-      "Type": 0,
-      "Link": null,
-      "Email": null
-    }
-  },
-  {
     "Id": "5908829889",
     "State": 0,
-    "IncompleteSubscription": null,
+    "Role": 1,
     "Subscriptions": [
       {
-        "Id": "316adc7c-224d-45e0-aca3-325358b31903",
-        "EndDate": "2023-08-06T01:03:25.5206926+03:00"
+        "Id": "8e51d017-d592-42c5-bb68-62a1feb4b1ce",
+        "EndDate": "2023-08-09T23:33:30.7954801+03:00",
+        "OrderDate": "2023-08-07T23:33:30.7955781+03:00"
       }
     ],
-    "SubscriberData": {
-      "Type": 0,
-      "Link": "https://expressdelivery49.space/refund/195305921",
-      "Email": "test@test.com"
-    }
-  },
-  {
-    "Id": "365234983",
-    "State": 0,
-    "IncompleteSubscription": null,
-    "Subscriptions": [],
     "SubscriberData": {
       "Type": 0,
       "Link": null,

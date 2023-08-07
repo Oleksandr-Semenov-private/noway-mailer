@@ -33,7 +33,7 @@ internal class EmailEnteredHandler : MessageHandler
 	{
 		_message = message;
 
-		_subscriptionPersistence.AddEmail(subscriber, _message.HandlerInfo.Data);
+		await _subscriptionPersistence.AddEmailAsync(subscriber, _message.HandlerInfo.Data);
 
 		await _botClient.DeletePreviousAsync(message.From.ChatId, "Введите ссылку:");
 
@@ -59,17 +59,15 @@ internal class EmailEnteredHandler : MessageHandler
 		}
 		finally
 		{
-			var subscription = subscriber.Subscriptions.FirstOrDefault();
+			var subscription = "отсутствует";
 
-			var q = "отсутствует";
-
-			if (subscription != null)
-				q = $"{subscription.EndDate - DateTime.Now}";
+			if (subscriber.Subscriptions.Count > 0)
+				subscription = await subscriber.Subscriptions.OrderDescending().FirstOrDefault().GetRemainingDaysToStringAsync();
 			
 			await _botClient.SendAsync(message.From.ChatId,
 				"👋 Вы попали в главное меню" +
 				$"\n📍 Ваш id: {subscriber.Id}" +
-				$"\n📝 Подписка: {q}",
+				$"\n📝 Подписка: {subscription}",
 				replyMarkup: Keyboard.GetMainKeyboard());
 
 			subscriber.State = InputState.Idle;

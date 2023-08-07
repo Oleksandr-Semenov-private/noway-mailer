@@ -7,30 +7,29 @@ namespace MailerRobot.Bot;
 
 public class SubscriptionPersistence : ISubscriptionPersistence
 {
-   // private readonly ILogger _logger;
+   // private readonly ILogger _logger
     protected readonly IDataStorage DataStorage;
     protected ConcurrentBag<Subscriber> SubscriberList { get; set; }
 
     public SubscriptionPersistence(IDataStorage dataStorage)
     {
         Directory.CreateDirectory("data");
-       // _logger = logger;
         DataStorage = dataStorage;
         SubscriberList = new ConcurrentBag<Subscriber>();
-        RestoreData();
+        RestoreData(); // Дожидаемся завершения асинхронной операции в конструкторе (не самое лучшее решение)
     }
 
-    public void AddSubscriber(Subscriber subscriber)
+    public async Task AddSubscriberAsync(Subscriber subscriber)
     {
         SubscriberList.Add(subscriber);
-        SaveData();
+        await SaveDataAsync();
     }
 
-    public Subscriber[] GetSubscribers()
+    public Task<Subscriber[]> GetSubscribersAsync()
     {
-        return SubscriberList.ToArray();
+        return Task.FromResult(SubscriberList.ToArray());
     }
-
+    
     public bool RestoreData()
     {
         try
@@ -58,48 +57,54 @@ public class SubscriptionPersistence : ISubscriptionPersistence
         return true;
     }
 
-    public void SaveData()
+    public Task SaveDataAsync()
     {
-        DataStorage.Save(SubscriberList, Path.Join("data", "Subscribers.json"));
+        return DataStorage.SaveAsync(SubscriberList, Path.Join("data", "Subscribers.json"));
     }
 
-    public void AddLink(Subscriber subscriber, string link)
+    public async Task AddLinkAsync(Subscriber subscriber, string link)
     {
         subscriber.SubscriberData.Link = link;
-        SaveData();
+        await SaveDataAsync();
     }
 
-    public void AddEmail(Subscriber subscriber, string email)
+    public async Task AddEmailAsync(Subscriber subscriber, string email)
     {
         subscriber.SubscriberData.Email = email;
-        SaveData();
+        await SaveDataAsync();
     }
 
-    public void AddServiceType(Subscriber subscriber, ServiceType serviceType)
+    public async Task AddServiceTypeAsync(Subscriber subscriber, ServiceType serviceType)
     {
         subscriber.SubscriberData.Type = serviceType;
-        SaveData();
+        await SaveDataAsync();
     }
 
-    public void CreateSubscription(Subscriber subscriber, int countOfDays)
+    public async Task CreateSubscriptionAsync(Subscriber subscriber, int countOfDays)
     {
-        var subscription = new Subscription() { EndDate = DateTime.Now.AddDays(countOfDays) };
-        subscriber.Subscriptions = new List<Subscription>() {subscription};
-        SaveData();
+        var subscription = new Subscription() { EndDate = DateTime.Now.AddDays(countOfDays), OrderDate = DateTime.Now };
+        subscriber.Subscriptions = new List<Subscription>() { subscription };
+        await SaveDataAsync();
     }
 
-    public void RenewSubscription(Subscriber subscriber, int countOfDays)
+    public async Task RenewSubscriptionAsync(Subscriber subscriber, int countOfDays)
     {
-        var subscription = subscriber.Subscriptions.First();
-        subscription.EndDate.AddDays(countOfDays);
-        SaveData();
+        var subscription = subscriber.Subscriptions.OrderByDescending(sub => sub.OrderDate).First();
+        subscription.EndDate = subscription.EndDate.AddDays(countOfDays);
+        await SaveDataAsync();
     }
 
-    /*public List<Subscription> GetEnabledSubscriptions()
+    public async Task DeleteExpiredSubscriptionAsync(Subscriber subscriber)
     {
-        return GetSubscribers()
-            .SelectMany(s => s.Subscriptions)
-            .Where(s => s.Enabled)
-            .ToList();
-    }*/
+        subscriber.Subscriptions.RemoveAll(subscription => subscription.GetRemainingDays() < 0);
+        await SaveDataAsync();
+    }
+
+    //public List<Subscription> GetEnabledSubscriptions()
+    //{
+    //    return GetSubscribers()
+    //        .SelectMany(s => s.Subscriptions)
+    //        .Where(s => s.Enabled)
+    //        .ToList();
+    //}
 }

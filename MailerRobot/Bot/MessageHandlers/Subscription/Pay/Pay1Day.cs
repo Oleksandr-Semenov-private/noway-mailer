@@ -31,19 +31,6 @@ internal class Pay1Day : MessageHandler
 			0.1,
 			description: "test");
 
-		var q = invoice.Status;
-		
-		InlineKeyboardMarkup inlineKeyboard = new(new[]
-		{
-			// first row
-			new[]
-			{
-				InlineKeyboardButton.WithCallbackData(text: "Кнопка 1", callbackData: "post"),
-				InlineKeyboardButton.WithCallbackData(text: "Кнопка 2", callbackData: "12"),
-			},
- 
-		});
-
 		await _botClient.OverridePreviousAsync(message.From.ChatId,
 			$"К оплате {invoice.Amount} USDT" +
 			"\n\nДля оплаты перейдите по ссылке:",

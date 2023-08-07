@@ -55,7 +55,7 @@ public class Handlers : IHandlers
 
 		try
 		{
-			var subscribers = _subscriptionPersistence.GetSubscribers();
+			var subscribers = await _subscriptionPersistence.GetSubscribersAsync();
 			long clientId = 0;
 
 			try
@@ -68,12 +68,16 @@ public class Handlers : IHandlers
 			}
 
 			subscriber = subscribers.SingleOrDefault(s => s.Id == clientId.ToString());
-
+			
 			if (subscriber is null)
 			{
-				subscriber = new Subscriber {Id = clientId.ToString()};
-				_subscriptionPersistence.AddSubscriber(subscriber);
+				subscriber = new Subscriber {Id = clientId.ToString(), Role = Role.User};
+				await _subscriptionPersistence.AddSubscriberAsync(subscriber);
 			}
+			
+			//TODO: BackGround service который чекает подписки
+			if(subscriber.Subscriptions.Count > 0)
+				await _subscriptionPersistence.DeleteExpiredSubscriptionAsync(subscriber);
 
 			var messageData = update.Type switch
 			{
@@ -85,60 +89,8 @@ public class Handlers : IHandlers
 
 			if (messageData.HandlerInfo.HandlerName == HandlerName.CheckPayment)
 			{
-				var cryptoPayClient = new CryptoPayClient("112943:AA0X3i5yXTduM2hyLs5f1DXcjphHssKRXpY");
-
-				var invoicesAsync = await cryptoPayClient.GetInvoicesAsync(cancellationToken: cancellationToken);
-
-				var invoice = invoicesAsync.Items.First(i => i.InvoiceId == long.Parse(messageData.HandlerInfo.Data));
-
-				if (invoice.Status == Statuses.active)
-				{
-					var telegramMessage = "Счет не оплачен";
-
-					await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
-						ParseMode.Html);
-
+				if (await CheckPayment(botClient, update, cancellationToken, messageData, subscriber))
 					return;
-				}
-
-				if (invoice.Status == Statuses.paid)
-				{
-					var telegramMessage = "Счет успешно оплачен";
-
-					await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
-						ParseMode.Html);
-
-					var countDays = 0;
-
-					switch (invoice.Amount)
-					{
-						case 0.1:
-							countDays = 1;
-
-							break;
-						case 0.2:
-							countDays = 3;
-
-							break;
-						case 0.3:
-							countDays = 7;
-
-							break;
-						case 0.4:
-							countDays = 30;
-
-							break;
-					}
-
-					if (subscriber.Subscriptions.Count == 0)
-						_subscriptionPersistence.CreateSubscription(subscriber, countDays);
-					else
-						_subscriptionPersistence.RenewSubscription(subscriber, countDays);
-
-					return;
-
-					//messageData.HandlerInfo.HandlerName = HandlerName.MainMenu;
-				}
 			}
 
 			await HandleMessageAsync(subscriber, messageData);
@@ -149,6 +101,65 @@ public class Handlers : IHandlers
 			Console.WriteLine(exception.Message);
 			await HandleError(botClient, exception, cancellationToken);
 		}
+	}
+
+	private async Task<bool> CheckPayment(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken,
+		MessageData messageData, Subscriber subscriber)
+	{
+		var cryptoPayClient = new CryptoPayClient("112943:AA0X3i5yXTduM2hyLs5f1DXcjphHssKRXpY");
+
+		var invoicesAsync = await cryptoPayClient.GetInvoicesAsync(cancellationToken: cancellationToken);
+
+		var invoice = invoicesAsync.Items.First(i => i.InvoiceId == long.Parse(messageData.HandlerInfo.Data));
+
+		if (invoice.Status == Statuses.active)
+		{
+			var telegramMessage = "Счет не оплачен";
+
+			await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
+				ParseMode.Html);
+
+			return true;
+		}
+
+		if (invoice.Status == Statuses.paid)
+		{
+			var telegramMessage = "Счет успешно оплачен";
+
+			await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, telegramMessage,
+				ParseMode.Html);
+
+			var countDays = 0;
+
+			switch (invoice.Amount)
+			{
+				case 0.1:
+					countDays = 1;
+
+					break;
+				case 0.2:
+					countDays = 3;
+
+					break;
+				case 0.3:
+					countDays = 7;
+
+					break;
+				case 0.4:
+					countDays = 30;
+
+					break;
+			}
+
+			if (subscriber.Subscriptions.Count == 0)
+				await _subscriptionPersistence.CreateSubscriptionAsync(subscriber, countDays);
+			else
+				await _subscriptionPersistence.RenewSubscriptionAsync(subscriber, countDays);
+
+			//messageData.HandlerInfo.HandlerName = HandlerName.MainMenu;
+		}
+
+		return false;
 	}
 
 	private async Task HandleMessageAsync(Subscriber subscriber, MessageData message)

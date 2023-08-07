@@ -4,10 +4,15 @@ public class Subscriber
 {
     public string Id { get; set; }
     public InputState State { get; set; } = InputState.Idle;
-    public Subscription IncompleteSubscription { get; set; }
+    public Role Role { get; set; }
     public List<Subscription> Subscriptions { get; set; } = new();
 
     public SubscriberData SubscriberData { get; set; } = new();
+    
+    public void RemoveExpiredSubscriptions()
+    {
+        Subscriptions.RemoveAll(subscription => subscription.GetRemainingDays() < 0);
+    }
 }
 
 public class SubscriberData
